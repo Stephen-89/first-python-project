@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker News Top Posts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+	
+    <div class="container">
+        <h1>Hacker News Top Posts</h1>
+        <button id="load-comments">Top 10 by Comments</button>
+        <button id="load-points">Top 10 by Points</button>
+        <div id="results">
+            <h2>Results:</h2>
+            <ul id="results-list"></ul>
+        </div>
+    </div>
+	<div class="container">
+        <h1>Hacker News Top Posts</h1>
+        <button id="load-comments-chart">Top 10 by Comments</button>
+        <button id="load-points-chart">Top 10 by Points</button>
+        <div id="charts">
+            <canvas id="commentsChart" width="400" height="200"></canvas>
+            <canvas id="pointsChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    <script>
+        document.getElementById('load-comments').addEventListener('click', function() {
+            fetch('/api/v1.0/top-ten-comments')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsList = document.getElementById('results-list');
+                    resultsList.innerHTML = '';
+                    data.forEach(post => {
+                        const li = document.createElement('li');
+                        li.textContent = `${post.title} - Comments: ${post.num_comments}, Points: ${post.num_points}`;
+                        resultsList.appendChild(li);
+                    });
+                });
+        });
+        document.getElementById('load-points').addEventListener('click', function() {
+            fetch('/api/v1.0/top-ten-points')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsList = document.getElementById('results-list');
+                    resultsList.innerHTML = '';
+                    data.forEach(post => {
+                        const li = document.createElement('li');
+                        li.textContent = `${post.title} - Comments: ${post.num_comments}, Points: ${post.num_points}`;
+                        resultsList.appendChild(li);
+                    });
+                });
+        });
+        function truncateTitle(title, maxLength = 10) {
+            return title.length > maxLength ? title.slice(0, maxLength) + '...' : title;
+        }
+        document.getElementById('load-comments-chart').addEventListener('click', function() {
+            fetch('/api/v1.0/top-ten-comments')
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(post => truncateTitle(post.title));
+                    const commentCounts = data.map(post => post.num_comments);
+                    
+                    const ctx = document.getElementById('commentsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Number of Comments',
+                                data: commentCounts,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+        document.getElementById('load-points-chart').addEventListener('click', function() {
+            fetch('/api/v1.0/top-ten-points')
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(post => truncateTitle(post.title));
+                    const pointCounts = data.map(post => post.num_points);
+                    
+                    const ctx = document.getElementById('pointsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Number of Points',
+                                data: pointCounts,
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+    </script>
+    
+</body>
+</html>
